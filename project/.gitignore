@@ -101,4 +101,4 @@ $RECYCLE.BIN/
 *.lnk
 
 #project dir
-*/idea
+idea/
