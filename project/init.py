@@ -5,6 +5,7 @@ import math as math
 import matplotlib.pyplot as plt
 import datetime as dt
 import sys as sys
+import csv as csv
 
 
 def getData(stock):
@@ -49,7 +50,7 @@ if __name__ == '__main__':
     #max position are the number of maximum stock agent can buy
     #features is window size of past returns that are accounted for decision of next position
     #rho is learning rate of gradinet ascent algo
-    maxPosition = 5
+    maxPosition = 1
     nFeatures = 10
     rho = 0.5
     totalData = len(apple)
@@ -93,7 +94,7 @@ if __name__ == '__main__':
         w1 = np.array(np.zeros(w.size),dtype=float)
         if not t==1:
             for num in range(100):
-                w1 = w+ gradAscent(rho,maxPosition,x,deltaDSR,R[-1])
+                w1 = w+ gradAscent(rho,maxPosition,x,deltaDSR,R[-1]/F[-1])
                 w = w1
         else:
             pass
@@ -105,7 +106,7 @@ if __name__ == '__main__':
     t = nFeatures+1
     w = np.array(w,dtype=float)
     while(t<totalData):
-        R = np.append(R,[r[t]*F[t-1]*maxPosition])
+        R = np.append(R,[r[t]*F[-1]*maxPosition])
         #calculating exponential weighted mean average for first and second moment of Rt
         secondMoment = [i*i for i in R]
         secondMoment = np.array(secondMoment,dtype=float)
@@ -123,7 +124,7 @@ if __name__ == '__main__':
         #call Gradient asecent with repect to w here
         w1 = np.array(np.zeros(nFeatures+2),dtype=float)
         for num in range(1000):
-            w1 = w+gradAscent(rho,maxPosition,x,deltaDSR,R[-1])
+            w1 = w+gradAscent(rho,maxPosition,x,deltaDSR,R[-1]/F[-1])
             w = w1
 
         F_t = np.tanh(np.dot(w,x))
@@ -135,11 +136,14 @@ if __name__ == '__main__':
         cumR.append(sum(R[:i]))
 
 
-    print cumR
+    out = csv.writer(open("out.txt", 'w'))
+    for i in range(0,len(F),30):
+        out.writerow(F)
     plt.plot(cumR,'r')
     plt.plot(R,'g')
     plt.plot(apple,'b')
-    plt.plot(F*maxPosition,'orange')
+    plt.plot([a-20 for a in F],'orange')
+    print sum(R)
     plt.show()
 
 
