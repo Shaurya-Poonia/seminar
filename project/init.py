@@ -5,8 +5,6 @@ import math as math
 import matplotlib.pyplot as plt
 import datetime as dt
 import sys as sys
-import csv as csv
-
 
 def getData(stock):
     """ Returns apple data between start and end data"""
@@ -135,10 +133,6 @@ if __name__ == '__main__':
     for i in range(R.size):
         cumR.append(sum(R[:i]))
 
-
-    out = csv.writer(open("out.txt", 'w'))
-    for i in range(0,len(F),30):
-        out.writerow(F)
     plt.plot(cumR,'r')
     plt.plot(R,'g')
     plt.plot(apple,'b')
