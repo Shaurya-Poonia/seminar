@@ -22,22 +22,12 @@ def closingPriceData(stock):
         closePriceList.append(stock['Adj Close'][i])
     return closePriceList
 
-def plotG(priceList):
-    plt.plot(priceList)
-    plt.show()
-
 
 def gradAscent(rho,maPos,x,deltaDSR,R):
 	temp = rho*deltaDSR*maPos*R
         #print(rho,x,deltaDSR,R)
 	return [temp*i for i in x]
 
-
-"""def model(n,F,r,t):
-
-    w = gredientAscent()
-    F[t] = np.tanh(np.dot(w,x))
-    return F[t]"""
 
 if __name__ == '__main__':
 
