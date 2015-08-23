@@ -36,15 +36,11 @@ def gradAscent(rho,maxPosition,friction,currentPos,deltaDSR,xt,x,wt,rt):
     tempList = [maxPosition*deltaDSR*a*rho for a in tempList]
     if(math.isnan(np.tanh(np.dot(wt,tempList)))):
         sys.exit()
-    """print("******************************************")
-    print -1*temp*wt[1]*friction
-    print wt[1]
-    print sign
-    print temp
-    print tempList1
-    print tempList2
+    print("******************************************")
+    print deltaDSR
+    print tempList
 
-    print("******************************************")"""
+    print("******************************************")
     return np.array(tempList,dtype=float) 
 
 
@@ -104,6 +100,9 @@ if __name__ == '__main__':
 
         #calculate gradient of differential sharp Ratio
         deltaDSR = secondMomentEWMA[-2]-firstMomentEWMA[-2]*R[-1]/ math.pow(secondMomentEWMA[-2]-math.pow(firstMomentEWMA[-2],2),1.5)
+        print firstMomentEWMA
+        print secondMomentEWMA
+        print deltaDSR
         #x here is feature vector
         #contains last n returns per stock, and t-1th position
         x=np.append([1,F[-2]],np.array(R[-int(t):-1],dtype=float))
@@ -115,11 +114,11 @@ if __name__ == '__main__':
     
         F_t = 0.5
         for num in range(100):
+            print wt[1]
             w1= wt+ gradAscent(rho,maxPosition,friction,F_t,deltaDSR,xt,x,wt,R[-1]/F[-1])
             wt = w1
             F_t = np.tanh(np.dot(wt,xt))
             print wt[1]
-        if t==3:
             sys.exit()
         F = np.append(F,F_t)
 
