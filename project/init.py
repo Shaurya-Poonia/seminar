@@ -8,8 +8,8 @@ import sys as sys
 
 def getData(stock):
     """ Returns apple data between start and end data"""
-    start = dt.datetime(2012,1,1)
-    end = dt.datetime(2014,1,1)
+    start = dt.datetime(1970,1,1)
+    end = dt.datetime(1995,5,1)
     apple = dataReader.DataReader(stock,'yahoo',start,end)
     return apple
 
@@ -25,29 +25,33 @@ def closingPriceData(stock):
 
 
 def gradAscent(rho,maxPosition,friction,currentPos,deltaDSR,xt,x,wt,rt):
+    if(currentPos == 1.0 or currentPos == -1.0):
+      return np.array(np.zeros(xt.size),dtype=float)
     sign = (currentPos-xt[1])/abs(currentPos-xt[1])
-    
     temp = sign*(1-currentPos*currentPos)
     tempList1 = np.array([-1*friction*temp for a in xt],dtype=float)
-    temp = -1*temp*wt[1]*friction+rt+friction*sign
-    tempList2 = np.array([a*temp for a in x],dtype=float)
-    #print len(tempList1),len(tempList2)
+    temp1 = -1*temp*wt[1]*friction+rt+friction*sign
+    tempList2 = np.array([a*temp1 for a in x],dtype=float)
     tempList = np.array(tempList1+tempList2,dtype=float)
     tempList = [maxPosition*deltaDSR*a*rho for a in tempList]
+
     if(math.isnan(np.tanh(np.dot(wt,tempList)))):
+        print("******************************************")
+        print wt
+        print currentPos
+        print xt
+        print x
+        print temp1
+        print temp
+        print deltaDSR
+        print np.add(tempList1,tempList2)
+        print tempList1
+        print tempList2
+        print tempList
+        print("******************************************")
         sys.exit()
-    print("******************************************")
-    print deltaDSR
-    print tempList
 
-    print("******************************************")
     return np.array(tempList,dtype=float) 
-
-
-"""def gradAscent(rho,maPos,x,deltaDSR,R):
-	temp = rho*deltaDSR*maPos*R
-        #print(rho,x,deltaDSR,R)
-	return [temp*i for i in x]"""
 
 
 if __name__ == '__main__':
@@ -59,10 +63,11 @@ if __name__ == '__main__':
     #max position are the number of maximum stock agent can buy
     #features is window size of past returns that are accounted for decision of next position
     #rho is learning rate of gradinet ascent algo
+    #20
     maxPosition = 1
-    nFeatures = 10
+    nFeatures = int(sys.argv[1])
     rho = 0.5
-    friction = 0.01
+    friction = 0.20
     totalData = len(apple)
     #calculating return per stock
     r = map(lambda a,b:a-b,apple[1:],apple[:-1])
@@ -91,7 +96,7 @@ if __name__ == '__main__':
     #we wont have this size of window since the start itself
     #so we have to slowly increase the window size
     R = np.append(R,r[1]*F[0]*maxPosition)
-    for t in range(2,nFeatures):
+    for t in range(2,nFeatures+2):
         R = np.append(R,[r[t]*F[-1]*maxPosition])
         #calculating exponential weighted mean average for first and second moment of Rt
         secondMoment = np.array( [i*i for i in R],dtype=float)
@@ -100,9 +105,9 @@ if __name__ == '__main__':
 
         #calculate gradient of differential sharp Ratio
         deltaDSR = secondMomentEWMA[-2]-firstMomentEWMA[-2]*R[-1]/ math.pow(secondMomentEWMA[-2]-math.pow(firstMomentEWMA[-2],2),1.5)
-        print firstMomentEWMA
-        print secondMomentEWMA
-        print deltaDSR
+        #print firstMomentEWMA
+        #print secondMomentEWMA
+        #print deltaDSR
         #x here is feature vector
         #contains last n returns per stock, and t-1th position
         x=np.append([1,F[-2]],np.array(R[-int(t):-1],dtype=float))
@@ -114,12 +119,9 @@ if __name__ == '__main__':
     
         F_t = 0.5
         for num in range(100):
-            print wt[1]
             w1= wt+ gradAscent(rho,maxPosition,friction,F_t,deltaDSR,xt,x,wt,R[-1]/F[-1])
             wt = w1
             F_t = np.tanh(np.dot(wt,xt))
-            print wt[1]
-            sys.exit()
         F = np.append(F,F_t)
 
     t = nFeatures+2
@@ -141,7 +143,7 @@ if __name__ == '__main__':
         #w = np.append(w,np.zeros(1,dtype=float))
         #calculate gradient of differential sharp Ratio
         deltaDSR = secondMomentEWMA[-2]-firstMomentEWMA[-2]*R[-1]/ math.pow(secondMomentEWMA[-2]-math.pow(firstMomentEWMA[-2],2),1.5)
-        print x,xt
+        #print x,xt
         #call Gradient asecent with repect to w here
         w1 = np.array(np.zeros(nFeatures+2),dtype=float)
         F_t=0.5
@@ -149,10 +151,6 @@ if __name__ == '__main__':
             w1= wt+ gradAscent(rho,maxPosition,friction,F_t,deltaDSR,xt,x,wt,R[-1]/F[-1])
             wt = w1
             F_t = np.tanh(np.dot(wt,xt))
-            print w1,F_t,t
-            if math.isnan(F_t):
-                sys.exit()
-            
         F = np.append(F,F_t)
         t = t+1
 
@@ -161,9 +159,10 @@ if __name__ == '__main__':
         cumR.append(sum(R[:i]))
 
     plt.plot(cumR,'r')
-    plt.plot(R,'g')
-    plt.plot(apple,'b')
-    plt.plot([a-20 for a in F],'orange')
+    #plt.plot(R,'g')
+    #plt.plot(apple,'b')
+    plt.plot([a*20 for a in F],'orange')
+    print F*10
     print sum(R)
     plt.show()
 
