@@ -8,8 +8,8 @@ import sys as sys
 
 def getData(stock):
     """ Returns apple data between start and end data"""
-    start = dt.datetime(1970,1,1)
-    end = dt.datetime(1995,1,1)
+    start = dt.datetime(2012,1,1)
+    end = dt.datetime(2015,1,1)
     apple = dataReader.DataReader(stock,'yahoo',start,end)
     return apple
 
@@ -25,7 +25,7 @@ def closingPriceData(stock):
 
 def gradAscent(rho,maPos,x,deltaDSR,R):
     temp = rho*deltaDSR*maPos*R
-    print(deltaDSR)
+    #print(deltaDSR)
     #sys.exit()
     #print(rho,x,deltaDSR,R)
     return [temp*i for i in x]
@@ -40,8 +40,8 @@ if __name__ == '__main__':
     #max position are the number of maximum stock agent can buy
     #features is window size of past returns that are accounted for decision of next position
     #rho is learning rate of gradinet ascent algo
-    maxPosition = 1
-    nFeatures = 10
+    maxPosition = int(sys.argv[1])
+    nFeatures = int(sys.argv[2])
     rho = 0.5
     totalData = len(apple)
     #calculating return per stock
@@ -116,7 +116,6 @@ if __name__ == '__main__':
         for num in range(1000):
             w1 = w+gradAscent(rho,maxPosition,x,deltaDSR,R[-1]/F[-1])
             w = w1
-
         F_t = np.tanh(np.dot(w,x))
         F = np.append(F,F_t)
         t = t+1
@@ -125,11 +124,11 @@ if __name__ == '__main__':
     for i in range(R.size):
         cumR.append(sum(R[:i]))
 
-    plt.plot(cumR,'r')
-    plt.plot(R,'g')
-    plt.plot(apple,'b')
-    plt.plot([a-20 for a in F],'orange')
-    print sum(R)
+    #plt.plot(cumR,'r')
+    #plt.plot(R,'g')
+    #plt.plot(apple,'b')
+    plt.plot([a*10 for a in F],'orange')
+    #print sum(R)
     plt.show()
 
 
