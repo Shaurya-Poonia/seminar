@@ -24,9 +24,11 @@ def closingPriceData(stock):
 
 
 def gradAscent(rho,maPos,x,deltaDSR,R):
-	temp = rho*deltaDSR*maPos*R
-        #print(rho,x,deltaDSR,R)
-	return [temp*i for i in x]
+    temp = rho*deltaDSR*maPos*R
+    print(deltaDSR)
+    #sys.exit()
+    #print(rho,x,deltaDSR,R)
+    return [temp*i for i in x]
 
 
 if __name__ == '__main__':
