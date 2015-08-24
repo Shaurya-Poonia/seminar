@@ -57,7 +57,7 @@ def gradAscent(rho,maxPosition,friction,currentPos,deltaDSR,xt,x,wt,rt):
     return np.array(tempList,dtype=float) 
 
 
-def driver():
+def driver(maxPos=30,features=30,gradRate=0.5,friction=0.10):
     #getting the stock data from yahoo
     apple = closingPriceData('^GSPC');
 
@@ -66,10 +66,9 @@ def driver():
     #features is window size of past returns that are accounted for decision of next position
     #rho is learning rate of gradinet ascent algo
     #20
-    maxPosition = 30
-    nFeatures = 30
-    rho = 0.5
-    friction = 10
+    maxPosition = maxPos
+    nFeatures = features
+    rho = gradRate
     totalData = len(apple)
     #calculating return per stock
     r = map(lambda a,b:a-b,apple[1:],apple[:-1])
@@ -168,15 +167,21 @@ def driver():
     #plt.plot(cumR,'r')
 
     plt.plot(R,'g')
-    #plt.plot(apple,'b')
-    #plt.plot([a*50 for a in F],'orange')
-    #print F*10
-    #print sum(R)
+    plt.show()
+    plt.plot(apple,'b')
+    plt.show()
+    plt.plot([a*50 for a in F],'orange')
     plt.show()
     return cumR,R,apple
 
 if __name__ == '__main__':
+    """maxPos=30
+    features=30
+    gradRate=0.5
+    friction=0.10"""
     [a,b,c] = driver()
+    #[a,b,c] = driver(maxPos,features,gradRate,friction)
+    #calculated sharp ratio and plots it.
     d = []
     for i in range(10,len(b)):
         d.append(np.mean(np.array(b[i-10:i]))/np.std(np.array(b[i-10:i])))
