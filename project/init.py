@@ -10,8 +10,8 @@ def getData(stock):
     """ Returns apple data between start and end data"""
     start = dt.datetime(2012,1,1)
     #start = dt.datetime(1970,1,1)
-    end = dt.datetime(2014,1,1)
-    #end = dt.datetime(1995,5,1)
+    end = dt.datetime(2014,5,1)
+    #end = dt.datetime(1995,1,1)
     apple = dataReader.DataReader(stock,'yahoo',start,end)
     return apple
 
@@ -54,7 +54,14 @@ def gradAscent(rho,maxPosition,friction,currentPos,deltaDSR,xt,x,wt,rt):
     print tempList
     print("******************************************")"""
 
-    return np.array(tempList,dtype=float) 
+    return np.array(tempList,dtype=float)
+
+def plotG(a,xlabel,ylabel,title,color):
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.title(title)
+    plt.plot(a,color)
+    plt.show()
 
 
 def driver(maxPos=30,features=30,gradRate=0.5,friction=0.10):
@@ -158,20 +165,15 @@ def driver(maxPos=30,features=30,gradRate=0.5,friction=0.10):
         F = np.append(F,F_t)
         t = t+1
 
-
-    R = np.append(R,F[-1]*apple[-1]*maxPosition)
     cumR =[0]
     for i in range(R.size):
         cumR.append(sum(R[:i]))
 
-    #plt.plot(cumR,'r')
 
-    plt.plot(R,'g')
-    plt.show()
-    plt.plot(apple,'b')
-    plt.show()
-    plt.plot([a*50 for a in F],'orange')
-    plt.show()
+    plotG(cumR,'dated 2012-2015','cumulative return','cumulative return 2012-2015 ','r')
+    plotG(R,'dated 2012-2015','return','return 2012-2015 ','g')
+    plotG(apple,'dated 2012-2015','stock price','stock price 2012-2015 ','r')
+    plotG(F,'dated 2012-2015','positions held','positions 2012-2015 ','g')
     return cumR,R,apple
 
 if __name__ == '__main__':
@@ -185,8 +187,7 @@ if __name__ == '__main__':
     d = []
     for i in range(10,len(b)):
         d.append(np.mean(np.array(b[i-10:i]))/np.std(np.array(b[i-10:i])))
-    plt.plot(d)
-    plt.show()
+    plotG(d,'dated 2012-2015','sharp ratio','sharp ratio 2012-2015 ','r')
     print sum(b)
 
 
