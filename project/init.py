@@ -5,12 +5,28 @@ import math as math
 import matplotlib.pyplot as plt
 import datetime as dt
 import sys as sys
+import csv as csv
+
+
+def extractData():
+    name = "nifty_price_"+str(1)+".csv"
+    header = list(csv.reader(open(name,'r')))[0]
+    headerDict = dict(zip(header,range(0,len(header))))
+    data = list(csv.reader(open(name,'r')))[1:]
+    #sys.exit()
+    for i in range(2,12):
+        name = "nifty_price_"+str(i)+".csv"
+        data.extend(list(csv.reader(open(name,'r')))[1:])
+    retDate = [a[headerDict['Date']] for a in data]
+    retClose = [float(a[headerDict['Close']]) for a in data]
+    return retClose,retDate
+
 
 def getData(stock):
     """ Returns apple data between start and end data"""
-    start = dt.datetime(2012,1,1)
+    start = dt.datetime(2005,1,1)
     #start = dt.datetime(1970,1,1)
-    end = dt.datetime(2014,5,1)
+    end = dt.datetime(2014,12,31)
     #end = dt.datetime(1995,1,1)
     apple = dataReader.DataReader(stock,'yahoo',start,end)
     return apple
@@ -22,8 +38,17 @@ def closingPriceData(stock):
     closePriceList =[]
     for i in range(0,sizeList):
         closePriceList.append(stock['Adj Close'][i])
-    return closePriceList
 
+    date =  stock.reset_index()['Date']
+    return closePriceList,date
+
+
+def plotG(a,xlabel,ylabel,title,color):
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.title(title)
+    plt.plot(a,color)
+    plt.show()
 
 
 def gradAscent(rho,maxPosition,friction,currentPos,deltaDSR,xt,x,wt,rt):
@@ -40,34 +65,13 @@ def gradAscent(rho,maxPosition,friction,currentPos,deltaDSR,xt,x,wt,rt):
     tempList = np.array(tempList1+tempList2,dtype=float)
     tempList = [maxPosition*deltaDSR*a*rho for a in tempList]
 
-    """print("******************************************")
-    print wt
-    print currentPos
-    print xt
-    print x
-    print temp1
-    print temp
-    print deltaDSR
-    print np.add(tempList1,tempList2)
-    print tempList1
-    print tempList2
-    print tempList
-    print("******************************************")"""
-
     return np.array(tempList,dtype=float)
-
-def plotG(a,xlabel,ylabel,title,color):
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.title(title)
-    plt.plot(a,color)
-    plt.show()
 
 
 def driver(maxPos=30,features=30,gradRate=0.5,friction=0.10):
     #getting the stock data from yahoo
-    apple = closingPriceData('^GSPC');
-
+    #apple,date = closingPriceData('^GSPC');
+    apple,date = extractData();
     #different parameters for the simulation
     #max position are the number of maximum stock agent can buy
     #features is window size of past returns that are accounted for decision of next position
@@ -113,8 +117,10 @@ def driver(maxPos=30,features=30,gradRate=0.5,friction=0.10):
         secondMomentEWMA = pd.ewma(secondMoment,span=t)
 
         #calculate gradient of differential sharp Ratio
-
-        deltaDSR = secondMomentEWMA[-2]-firstMomentEWMA[-2]*R[-1]/ math.pow(secondMomentEWMA[-2]-math.pow(firstMomentEWMA[-2],2),1.5)
+        if secondMomentEWMA[-2]==0 and firstMomentEWMA[-2]==0:
+            deltaDSR =0            
+        else:
+            deltaDSR = secondMomentEWMA[-2]-firstMomentEWMA[-2]*R[-1]/ math.pow(secondMomentEWMA[-2]-math.pow(firstMomentEWMA[-2],2),1.5)
         #print firstMomentEWMA
         #print secondMomentEWMA
         #print deltaDSR
@@ -128,7 +134,7 @@ def driver(maxPos=30,features=30,gradRate=0.5,friction=0.10):
         #print wt.size,x.size,xt.size
     
         F_t = 0.5
-        for num in range(1000):
+        for num in range(1):
             w1= wt+ gradAscent(rho,maxPosition,friction,F_t,deltaDSR,xt,x,wt,R[-1]/F[-1])
             wt = w1
             F_t = 1*np.tanh(np.dot(wt,xt))
@@ -153,12 +159,15 @@ def driver(maxPos=30,features=30,gradRate=0.5,friction=0.10):
         #no need to increase feature vector here since we have reached proper window size
         #w = np.append(w,np.zeros(1,dtype=float))
         #calculate gradient of differential sharp Ratio
-        deltaDSR = secondMomentEWMA[-2]-firstMomentEWMA[-2]*R[-1]/ math.pow(secondMomentEWMA[-2]-math.pow(firstMomentEWMA[-2],2),1.5)
+        if secondMomentEWMA[-2]==0 and firstMomentEWMA[-2]==0:
+            deltaDSR =0            
+        else:
+            deltaDSR = secondMomentEWMA[-2]-firstMomentEWMA[-2]*R[-1]/ math.pow(secondMomentEWMA[-2]-math.pow(firstMomentEWMA[-2],2),1.5)
         #print x,xt
         #call Gradient asecent with repect to w here
         w1 = np.array(np.zeros(nFeatures+2),dtype=float)
         F_t=0.5
-        for num in range(1000):
+        for num in range(1):
             w1= wt+ gradAscent(rho,maxPosition,friction,F_t,deltaDSR,xt,x,wt,R[-1]/F[-1])
             wt = w1
             F_t = 1*np.tanh(np.dot(wt,xt))
@@ -171,24 +180,45 @@ def driver(maxPos=30,features=30,gradRate=0.5,friction=0.10):
 
 
     plotG(cumR,'dated 2012-2015','cumulative return','cumulative return 2012-2015 ','r')
-    plotG(R,'dated 2012-2015','return','return 2012-2015 ','g')
-    plotG(apple,'dated 2012-2015','stock price','stock price 2012-2015 ','r')
-    plotG(F,'dated 2012-2015','positions held','positions 2012-2015 ','g')
-    return cumR,R,apple
+    #plotG(R,'dated 2012-2015','return','return 2012-2015 ','g')
+    #plotG(apple,'dated 2012-2015','stock price','stock price 2012-2015 ','r')
+    #plotG(F,'dated 2012-2015','positions held','positions 2012-2015 ','g')
+    return cumR,R,apple,F,date
+
+
+def writeData(price,position,date):
+    #print price,position
+    output = open("output.csv",'w')
+    outputcsv = csv.writer(output)
+    header = ['Date','price','Position']
+    outputcsv.writerow(header)
+    i=0
+    currPosition=0
+    for currPosition in position:
+        row = [str(date[i]),str(price[i]),str(currPosition)]
+        outputcsv.writerow(row)
+        i += 1
+    output.close()    
+
 
 if __name__ == '__main__':
-    """maxPos=30
+    maxPos=1
     features=30
-    gradRate=0.5
-    friction=0.10"""
-    [a,b,c] = driver()
-    #[a,b,c] = driver(maxPos,features,gradRate,friction)
-    #calculated sharp ratio and plots it.
-    d = []
-    for i in range(10,len(b)):
-        d.append(np.mean(np.array(b[i-10:i]))/np.std(np.array(b[i-10:i])))
-    plotG(d,'dated 2012-2015','sharp ratio','sharp ratio 2012-2015 ','r')
-    print sum(b)
+    gradRate=0.000001*4
+    friction=100
+    for i in range(1):
+        [a,b,c,e,f] = driver(maxPos,features,gradRate,friction)
+        #[a,b,c] = driver(maxPos,features,gradRate,friction)
+        d = []
+        for i in range(10,len(b)):
+            d.append(np.mean(np.array(b[i-10:i]))/np.std(np.array(b[i-10:i])))
+        sharp_mean = np.mean(np.array(d),dtype=float)
+        sharp_variace = np.std(np.array(d),dtype=float)
+        title = 'sharp ratio 2012-2015\n mean: '+ str(sharp_mean) + '\n std: ' + str(sharp_variace)
+        #plotG(d,'dated 2012-2015','sharp ratio',title,'r')
+        #writeData(c,e,f);
+        print sum(b)
+        gradRate = gradRate*2
 
 
 
